@@ -38,11 +38,14 @@ def data(stock, start_date, days_ahead):
                               , start = start_date
                              )
     
+    # some open values are 0.0, set it same as close value
+    stock_df['Open'] = np.where(stock_df['Open'] == 0.0, stock_df['Close'], stock_df['Open'])
+    
     # open close % difference
-    stock_df['oc'] = (stock_df.Open - stock_df.Close) / stock_df.Open
+    stock_df['oc'] = (stock_df.Open - stock_df.Close) / (stock_df.Open)
     
     # high low % difference
-    stock_df['hl'] = (stock_df.High - stock_df.Low) / stock_df.Low
+    stock_df['hl'] = (stock_df.High - stock_df.Low) / (stock_df.Low)
     
     # adjusted close % change from previous day
     stock_df['adj'] = stock_df['Adj Close'].pct_change()
@@ -54,7 +57,7 @@ def data(stock, start_date, days_ahead):
     stock_df['5sma_adj'] = stock_df.adj.rolling(5).mean()
     
     # Direction
-    stock_df['direction'] = np.where(stock_df.adj.shift(-days_ahead) > stock_df.adj, 1, -1)
+    stock_df['direction'] = np.where(stock_df['adj'].shift(-days_ahead) > stock_df['adj'], 1, -1)
     
     # drop nulls
     stock_df.dropna(axis=0, inplace=True)    
@@ -77,7 +80,7 @@ def data(stock, start_date, days_ahead):
     train_upsampled = pd.concat([train_major, train_minor_upsampled])
     
     # shuffle the train dataframe to mix up the order to train model
-    train = train_upsampled.sample(frac=1)
+    train = train_upsampled.sample(frac=1).reset_index(drop=True)
     
     # features
     features = ['oc'
@@ -119,6 +122,7 @@ def rfc_GridSearch(X_train, y_train, stock_name, days_ahead, cv):
                                   , cv = cv
                                   , n_jobs = -1
                                  )
+    
     rfc_gridsearch.fit(X_train, y_train)
     
     # save best hyperparameters
