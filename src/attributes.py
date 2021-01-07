@@ -334,7 +334,7 @@ def all_func(stock_name, start_date, days_ahead, model_name, days_back):
         return print(f'Sell or hold {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {round(returns, 4)}\nStock Returns (x 100 for %): {round(stock_returns, 4)}')
     
 
-def pred_df(stock_name, start_date, days_ahead, days_back):
+def pred_summary(stock_name, start_date, days_ahead, days_back):
     """
     Function returns pandas dataframe of predictions
     
@@ -342,10 +342,16 @@ def pred_df(stock_name, start_date, days_ahead, days_back):
             start_date, str of stock start date ipo
             days_ahead, int of 1, 3, or 5 days ahead
             days_back, int of days back, 1 to use today for tomorrow's predicition
+    Outputs: pred, str sentence of direction 'Buy' 'Hold or Sell'
+             model_returns, float to 4 decimals of model returns multiple
+             stock_returns, float to 4 decimials of stock return during test sample period
     """
     X_train, X_test, y_train, y_test, stock_df = data(stock_name, start_date, days_ahead)
     
     rfc_model, y_pred, y_probs = rfc(X_train, X_test, y_train, stock_name, days_ahead)
+    
+    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']])
+    stock_df['returns'] = stock_df['adj'].shift(-1, fill_value = stock_df['adj'].median()) * stock_df['prediction']
     
     last = stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']].iloc[-days_back]
     test_length = len(y_test)
@@ -362,13 +368,67 @@ def pred_df(stock_name, start_date, days_ahead, days_back):
     test_idx = int(len(stock_df)*0.75)
     stock_returns = (stock_df['Close'][-1] - stock_df['Close'][-test_idx]) / stock_df['Close'][-test_idx]
     
+    if rfc_model.predict(np.array(last).reshape(1, -1))[0] == 1:
+        pred = f'Buy'
+        model_returns = round(returns, 4)
+        stock_returns = round(stock_returns, 4)
+    else:
+        pred = f'Hold or Sell'
+        model_returns = round(returns, 4)
+        stock_returns = round(stock_returns, 4)
+
+    return pred, model_returns, stock_returns
+
+
+def pred_summary_df(start_dates, stocks, days_back):
+    """
+    Function returns prediction summary pandas dataFarme
     
-    pass
+    Input: stocks, list of stock ticker symbols
+           days_back, days back from current date, 1 from predictions on today, 2 for predictions from yesterday
+    Output: pred_summary_df, pandas dataframe of prediction summary of listed stock tickers
+    
+    """
+    days_ahead = [1, 3, 5]
+    preds1 = []
+    preds3 = []
+    preds5 = []
 
-
-
-
-
+    for stock in stocks:
+        for day in days_ahead:
+            if day == 1:
+                preds1.append(pred_summary(stock
+                                           , start_dates[stock]
+                                           , days_ahead = day
+                                           , days_back = days_back
+                                          )
+                            )
+            if day == 3:
+                preds3.append(pred_summary(stock
+                                           , start_dates[stock]
+                                           , days_ahead = day
+                                           , days_back = days_back
+                                          )
+                            )
+            if day == 5:
+                preds5.append(pred_summary(stock
+                                           , start_dates[stock]
+                                           , days_ahead = day
+                                           , days_back = days_back
+                                          )
+                            )
+    df_dict = {'stock': stocks
+               , '1_Day_Pred': [x[0] for x in preds1]
+               , '1_Day_Model_Return': [x[1] for x in preds1]
+               , '3_Day_Pred': [x[0] for x in preds3]
+               , '3_Day_Model_Return': [x[1] for x in preds3]
+               , '5_Day_Pred': [x[0] for x in preds5]
+               , '5_Day_Model_Return': [x[1] for x in preds5]
+              }
+    pred_summary_df = pd.DataFrame(df_dict)
+    pred_summary_df['Actual_Returns'] = [x[2] for x in preds1]
+    
+    return pred_summary_df
 
 
 
