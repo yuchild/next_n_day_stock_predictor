@@ -269,6 +269,7 @@ def cross_validation(rfc, X, y, cv):
                       )
     return f'{cv} Fold Cross-Validation Score for First RF Model: {np.mean(cvals)}'
 
+
 def returns_plot(stock_name, stock_df, rfc_model, y_test):
     """
     Creates plot of model returns from 100% or 1.
