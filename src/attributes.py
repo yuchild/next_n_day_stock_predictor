@@ -331,7 +331,7 @@ def all_func(stock_name, start_date, days_ahead, model_name, days_back):
     if rfc_model.predict(np.array(last).reshape(1, -1))[0] == 1:
         return print(f'Buy {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {round(returns, 4)}\nStock Returns (x 100 for %): {round(stock_returns, 4)}')
     else:
-        return print(f'Sell or hold {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {returns}\nStock Returns (x 100 for %): {stock_returns}')
+        return print(f'Sell or hold {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {round(returns, 4)}\nStock Returns (x 100 for %): {round(stock_returns, 4)}')
     
 
 
