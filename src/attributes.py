@@ -269,11 +269,69 @@ def cross_validation(rfc, X, y, cv):
                       )
     return f'{cv} Fold Cross-Validation Score for First RF Model: {np.mean(cvals)}'
 
+def returns_plot(stock_name, stock_df, rfc_model, y_test):
+    """
+    Creates plot of model returns from 100% or 1.
+    
+    Inputs: stock_name, str of stock ticker symbol
+            stock_df, pandas dataframe of stock from data() function above
+            rfc_model, sklearn random forest classifier model
+            y_test, pandas series of target test data used to find number of test values
+    Outputs: None, graph of model returns
+    """
+    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']])
+    stock_df['returns'] = stock_df['adj'].shift(-1, fill_value = stock_df['adj'].median()) * stock_df['prediction']
+    
+    test_length = len(y_test)
+    (stock_df['returns'][-test_length:] + 1).cumprod().plot()
+    plt.title(f'{stock_name} Expected Returns %');
+    
+    
+def all_func(stock_name, start_date, days_ahead, model_name, days_back):
+    """
+    All function call to output desired predictions and metrics
+    
+    Inputs: stock_name, str of stock ticker symbol
+            start_date, str of stock start date ipo
+            days_ahead, int of 1, 3, or 5 days ahead
+            model_name, str of model used for graphs use only
+            days_back, int of days back, 1 to use today for tomorrow's predicition
+    Outputs: None: roc, precision recall curves, and confusion matrix grphas
+             print out of str sentence of model days ahead drediction, model return, and stock return   
+    """
+    
+    X_train, X_test, y_train, y_test, stock_df = data(stock_name, start_date, days_ahead)
+    
+    rfc_model, y_pred, y_probs = rfc(X_train, X_test, y_train, stock_name, days_ahead)
+    
+    returns_plot(stock_name, stock_df, rfc_model, y_test)
+    
+    roc_plot(y_test, y_probs, stock_name, model_name)
+    
+    prec_recall(y_test, y_probs, stock_name, model_name)
+    
+    confusion_matrix(rfc_model, X_test, y_test, stock_name)
+    
+    last = stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']].iloc[-days_back]
+    test_length = len(y_test)
+    
+    returns_on_ones = []
+    for idx in range(-test_length, 0):
+        if stock_df['prediction'][idx] == 1:
+            returns_on_ones.append(1 + stock_df['returns'][idx])
 
-def all_func(start, start_date, days_ahead):
-    X_train, X_test, y_train, y_test, stock_df = data(stock, start_date, days_ahead)
-    pass
-
+    returns = 1
+    for x in returns_on_ones:
+        returns *= x
+    
+    test_idx = int(len(stock_df)*0.75)
+    stock_returns = (stock_df['Close'][-1] - stock_df['Close'][-test_idx]) / stock_df['Close'][-test_idx]
+    
+    if rfc_model.predict(np.array(last).reshape(1, -1))[0] == 1:
+        return print(f'Buy {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {round(returns, 4)}\nStock Returns (x 100 for %): {round(stock_returns, 4)}')
+    else:
+        return print(f'Sell or hold {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {returns}\nStock Returns (x 100 for %): {stock_returns}')
+    
 
 
 
