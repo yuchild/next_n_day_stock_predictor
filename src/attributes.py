@@ -270,7 +270,9 @@ def cross_validation(rfc, X, y, cv):
     return f'{cv} Fold Cross-Validation Score for First RF Model: {np.mean(cvals)}'
 
 
-
+def all_func(start, start_date, days_ahead):
+    X_train, X_test, y_train, y_test, stock_df = data(stock, start_date, days_ahead)
+    pass
 
 
 
