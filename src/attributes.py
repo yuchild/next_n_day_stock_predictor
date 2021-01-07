@@ -334,8 +334,36 @@ def all_func(stock_name, start_date, days_ahead, model_name, days_back):
         return print(f'Sell or hold {stock_name} {days_ahead} day(s) ahead\nModel Returns (x 100 for %): {round(returns, 4)}\nStock Returns (x 100 for %): {round(stock_returns, 4)}')
     
 
+def pred_df(stock_name, start_date, days_ahead, days_back):
+    """
+    Function returns pandas dataframe of predictions
+    
+    Inputs: stock_name, str of stock ticker symbol
+            start_date, str of stock start date ipo
+            days_ahead, int of 1, 3, or 5 days ahead
+            days_back, int of days back, 1 to use today for tomorrow's predicition
+    """
+    X_train, X_test, y_train, y_test, stock_df = data(stock_name, start_date, days_ahead)
+    
+    rfc_model, y_pred, y_probs = rfc(X_train, X_test, y_train, stock_name, days_ahead)
+    
+    last = stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']].iloc[-days_back]
+    test_length = len(y_test)
+    
+    returns_on_ones = []
+    for idx in range(-test_length, 0):
+        if stock_df['prediction'][idx] == 1:
+            returns_on_ones.append(1 + stock_df['returns'][idx])
 
-
+    returns = 1
+    for x in returns_on_ones:
+        returns *= x
+    
+    test_idx = int(len(stock_df)*0.75)
+    stock_returns = (stock_df['Close'][-1] - stock_df['Close'][-test_idx]) / stock_df['Close'][-test_idx]
+    
+    
+    pass
 
 
 
