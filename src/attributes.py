@@ -50,11 +50,11 @@ def data(stock, start_date, days_ahead):
     # adjusted close % change from previous day
     stock_df['adj'] = stock_df['Adj Close'].pct_change()
     
-    # 5 day standard deviation of adjusted close % change from previous day 
-    stock_df['5stdev_adj'] = stock_df.adj.rolling(5).std()
+    # 7 day standard deviation of adjusted close % change from previous day 
+    stock_df['7stdev_adj'] = stock_df.adj.rolling(7).std()
     
-    # 5 day rolling average of adjusted close % change from pervious day
-    stock_df['5sma_adj'] = stock_df.adj.rolling(5).mean()
+    # 7 day rolling average of adjusted close % change from pervious day
+    stock_df['7sma_adj'] = stock_df.adj.rolling(7).mean()
     
     # Direction
     stock_df['direction'] = np.where(stock_df['adj'].shift(-days_ahead) > stock_df['adj'], 1, -1)
@@ -85,8 +85,8 @@ def data(stock, start_date, days_ahead):
     # features
     features = ['oc'
                , 'hl'
-               , '5stdev_adj'
-               , '5sma_adj'
+               , '7stdev_adj'
+               , '7sma_adj'
               ]
     
     # X_train, X_test, y_train, y_test
@@ -280,7 +280,7 @@ def returns_plot(stock_name, stock_df, rfc_model, y_test):
             y_test, pandas series of target test data used to find number of test values
     Outputs: None, graph of model returns
     """
-    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']])
+    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '7stdev_adj', '7sma_adj']])
     stock_df['returns'] = stock_df['adj'].shift(-1, fill_value = stock_df['adj'].median()) * stock_df['prediction']
     
     test_length = len(y_test)
@@ -313,7 +313,7 @@ def all_func(stock_name, start_date, days_ahead, model_name, days_back):
     
     confusion_matrix(rfc_model, X_test, y_test, stock_name)
     
-    last = stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']].iloc[-days_back]
+    last = stock_df[['oc', 'hl', '7stdev_adj', '7sma_adj']].iloc[-days_back]
     test_length = len(y_test)
     
     returns_on_ones = []
@@ -350,10 +350,10 @@ def pred_summary(stock_name, start_date, days_ahead, days_back):
     
     rfc_model, y_pred, y_probs = rfc(X_train, X_test, y_train, stock_name, days_ahead)
     
-    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']])
+    stock_df['prediction'] = rfc_model.predict(stock_df[['oc', 'hl', '7stdev_adj', '7sma_adj']])
     stock_df['returns'] = stock_df['adj'].shift(-1, fill_value = stock_df['adj'].median()) * stock_df['prediction']
     
-    last = stock_df[['oc', 'hl', '5stdev_adj', '5sma_adj']].iloc[-days_back]
+    last = stock_df[['oc', 'hl', '7stdev_adj', '7sma_adj']].iloc[-days_back]
     test_length = len(y_test)
     
     returns_on_ones = []
