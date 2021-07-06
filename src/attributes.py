@@ -29,6 +29,14 @@ from sklearn.metrics import (roc_auc_score
 from sklearn.utils import resample
 from sklearn.model_selection import cross_val_score
 
+def get_tables(start_dates):
+    for x in start_dates:
+        stock_df = pdr.get_data_yahoo(x.upper()
+                                      , data_source ='yahoo'
+                                      , start = datetime.strptime(start_dates[x], '%m/%d/%Y')
+                                      , end = datetime.strptime(datetime.today().strftime('%m/%d/%Y'), '%m/%d/%Y')
+                                     )
+        stock_df.to_pickle(f'./data/{x}_df.pkl')
 
 def data(stock, start_date, days_ahead):
     """
@@ -39,11 +47,7 @@ def data(stock, start_date, days_ahead):
     """
   
     # download daily stock data from yahoo 
-    stock_df = pdr.get_data_yahoo(stock
-                                  , data_source = 'yahoo'
-                                  , start = datetime.strptime(start_date, '%m/%d/%Y')
-                                  , end = datetime.strptime(datetime.today().strftime('%m/%d/%Y'), '%m/%d/%Y') 
-                                 )
+    stock_df = pd.read_pickle(f'./data/{stock}_df.pkl')
     
     # some open values are 0.0, set it same as close value
     stock_df['Open'] = where(stock_df['Open'] == 0.0, stock_df['Close'], stock_df['Open'])
