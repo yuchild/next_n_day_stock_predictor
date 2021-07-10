@@ -6,9 +6,7 @@ import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
 import seaborn as sns
 
-import pandas_datareader.data as pdr
 import yfinance as yf
-yf.pdr_override()
 
 from datetime import datetime
 
@@ -31,11 +29,8 @@ from sklearn.model_selection import cross_val_score
 
 def get_tables(start_dates):
     for x in start_dates:
-        stock_df = pdr.get_data_yahoo(x.upper()
-                                      , data_source ='yahoo'
-                                      , start = datetime.strptime(start_dates[x], '%m/%d/%Y')
-                                      , end = datetime.strptime(datetime.today().strftime('%m/%d/%Y'), '%m/%d/%Y')
-                                     )
+        stock = yf.Ticker(x.upper())
+        stock_df = stock.history(period="max")
         stock_df.to_pickle(f'./data/{x}_df.pkl')
 
 def data(stock, start_date, days_ahead):
@@ -58,8 +53,8 @@ def data(stock, start_date, days_ahead):
     # high low % difference
     stock_df['hl'] = (stock_df.High - stock_df.Low) / (stock_df.Low)
     
-    # adjusted close % change from previous day
-    stock_df['adj'] = stock_df['Adj Close'].pct_change()
+    # *adjusted close % change from previous day, *adjusted not available as of 2021-07-10
+    stock_df['adj'] = stock_df['Close'].pct_change()
     
     # 7 day standard deviation of adjusted close % change from previous day 
     stock_df['21stdev_adj'] = stock_df.adj.rolling(21).std()
