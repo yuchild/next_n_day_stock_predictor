@@ -48,7 +48,7 @@ def data(stock, start_date, days_ahead):
     stock_df['Open'] = where(stock_df['Open'] == 0.0, stock_df['Close'], stock_df['Open'])
     
     # open close % difference
-    stock_df['oc'] = (stock_df.Open - stock_df.Close) / (stock_df.Open)
+    stock_df['oc'] = (stock_df.Close - stock_df.Open) / (stock_df.Open)
     
     # high low % difference
     stock_df['hl'] = (stock_df.High - stock_df.Low) / (stock_df.Low)
@@ -56,10 +56,10 @@ def data(stock, start_date, days_ahead):
     # *adjusted close % change from previous day, *adjusted not available as of 2021-07-10
     stock_df['adj'] = stock_df['Close'].pct_change()
     
-    # 7 day standard deviation of adjusted close % change from previous day 
+    # 21 day standard deviation of close % change from previous day 
     stock_df['21stdev_adj'] = stock_df.adj.rolling(21).std()
     
-    # 7 day rolling average of adjusted close % change from pervious day
+    # 21 day rolling average of close % change from pervious day
     stock_df['21sma_adj'] = stock_df.adj.rolling(21).mean()
     
     # Direction
