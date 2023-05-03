@@ -18,8 +18,8 @@ from sklearn.metrics import (roc_auc_score
                              , precision_score
                              , recall_score
                              , roc_curve
-                             , confusion_matrix
-                             , plot_confusion_matrix
+                             , confusion_matrix as cm
+                             , ConfusionMatrixDisplay # plot_confusion_matrix
                              , precision_recall_curve
                              , auc
                             )
@@ -247,13 +247,21 @@ def confusion_matrix(rfc, X_test, y_test, stock_name):
     plt.rcParams['figure.figsize'] = (9.5, 8.5)
     plt.rcParams['font.size'] = 20
     # Confusion Matrix
-    disp = plot_confusion_matrix(rfc, X_test
+    predictions = rfc.predict(X_test)
+    cm_ = cm(y_test, predictions, labels=rfc.classes_)
+    disp = ConfusionMatrixDisplay.from_estimator(# confusion_matrix=cm_
+                                 # , display_labels=rfc.classes_
+                                 rfc
+                                 , X_test
                                  , y_test
                                  , cmap = plt.cm.Blues
                                  , normalize = 'true'
                                 )
-    disp.ax_.grid(False)
-    disp.ax_.set_title(f'{stock_name} Direction Confusion Matrix')
+    # disp.ax_.grid(False)
+    # disp.ax_.set_title(f'{stock_name} Direction Confusion Matrix')
+    # disp.plot(cmap = plt.cm.Blues)
+    plt.axis('off')
+    plt.title(f'{stock_name} Direction Confusion Matrix')
     plt.tight_layout();
     
     
