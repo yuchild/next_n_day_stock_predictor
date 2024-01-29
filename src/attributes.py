@@ -30,7 +30,7 @@ from sklearn.model_selection import cross_val_score
 def get_tables(start_dates):
     for x in start_dates:
         stock = yf.Ticker(x.upper())
-        stock_df = stock.history(period="max")
+        stock_df = stock.history(period="max",auto_adjust=True)
         stock_df.to_pickle(f'./data/{x}_df.pkl')
 
 def data(stock, start_date, days_ahead):
